@@ -1,9 +1,9 @@
 const express = require("express");
-// const bodyParser = require("body-parser");
+const bodyParser = require("body-parser");
 const cors = require("cors");
 require("dotenv").config();
 const MongoClient = require("mongodb").MongoClient;
-// const ObjectId = require("mongodb").ObjectId;
+const ObjectId = require("mongodb").ObjectId;
 
 const port = process.env.PORT || 5000;
 
@@ -24,19 +24,23 @@ async function run() {
       const postCollection = client.db("codeCollection").collection("post");
       const usersCollection = client.db("codeCollection").collection("user");
 
-      //post review
-      app.post("/addPost", async (req, res) => {
-        const result = await postCollection.insertOne(req.body);
-        res.json(result);
-      });
-      //get review
-      app.get("/addPost", async (req, res) => {
+      // get all services
+      app.get("/allPosts", async (req, res) => {
         const result = await postCollection.find({}).toArray();
         res.json(result);
       });
-      app.post("/addUserInfo", async (req, res) => {
-        console.log("req.body");
-        const result = await usersCollection.insertOne(req.body);
+      // single service
+      app.get("/singleService/:id", async (req, res) => {
+        console.log(req.params.id);
+        const result = await postCollection
+          .find({ _id: ObjectId(req.params.id) })
+          .toArray();
+        res.json(result[0]);
+        console.log(result);
+      });
+      //post allposts
+      app.post("/addPost", async (req, res) => {
+        const result = await postCollection.insertOne(req.body);
         res.json(result);
       });
       //  make admin
