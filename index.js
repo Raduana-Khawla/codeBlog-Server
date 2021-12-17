@@ -94,32 +94,32 @@ async function run() {
             .json({ message: "you do not have access to make admin" });
         }
       });
-      //order delete
-      // app.delete("/deleteOrder/:id", async (req, res) => {
-      //   const result = await ordersCollection.deleteOne({
-      //     _id: ObjectId(req.params.id),
-      //   });
-      //   // console.log(result);
-      //   res.json(result);
-      // });
-      // /// all order
-      // app.get("/allOrders", async (req, res) => {
-      //   // console.log("hello");
-      //   const result = await ordersCollection.find({}).toArray();
-      //   res.json(result);
-      // });
+      // order delete
+      app.delete("/deleteOrder/:id", async (req, res) => {
+        const result = await postCollection.deleteOne({
+          _id: ObjectId(req.params.id),
+        });
+        // console.log(result);
+        res.json(result);
+      });
+      /// all order
+      app.get("/allOrders", async (req, res) => {
+        // console.log("hello");
+        const result = await postCollection.find({}).toArray();
+        res.json(result);
+      });
 
-      // // status update
-      // app.put("/statusUpdate/:id", async (req, res) => {
-      //   const filter = { _id: ObjectId(req.params.id) };
-      //   console.log(req.params.id);
-      //   const result = await ordersCollection.updateOne(filter, {
-      //     $set: {
-      //       status: req.body.status,
-      //     },
-      //   });
-      //   res.json(result);
-      // });
+      // status update
+      app.put("/statusUpdate/:id", async (req, res) => {
+        const filter = { _id: ObjectId(req.params.id) };
+        console.log(req.params.id);
+        const result = await postCollection.updateOne(filter, {
+          $set: {
+            status: req.body.status,
+          },
+        });
+        res.json(result);
+      });
     });
   } finally {
     // await client.close();
