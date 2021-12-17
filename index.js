@@ -23,6 +23,9 @@ async function run() {
     await client.connect((err) => {
       const postCollection = client.db("codeCollection").collection("post");
       const usersCollection = client.db("codeCollection").collection("user");
+      const commentCollection = client
+        .db("codeCollection")
+        .collection("comment");
 
       // get all Posts
       app.get("/allPosts", async (req, res) => {
@@ -42,6 +45,11 @@ async function run() {
       //post allposts
       app.post("/addPost", async (req, res) => {
         const result = await postCollection.insertOne(req.body);
+        res.json(result);
+      });
+      //add Comments
+      app.post("/addComments", async (req, res) => {
+        const result = await commentCollection.insertOne(req.body);
         res.json(result);
       });
       app.get("/users/:email", async (req, res) => {
