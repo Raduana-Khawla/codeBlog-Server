@@ -26,11 +26,13 @@ async function run() {
       const commentCollection = client
         .db("codeCollection")
         .collection("comment");
+      const replyCollection = client.db("codeCollection").collection("reply");
 
       // get all Posts
       app.get("/allPosts", async (req, res) => {
         const result = await postCollection.find({}).toArray();
-        res.json(result);
+        const data = result.filter((item) => item.status === "approve");
+        res.json(data);
       });
 
       // single Post
@@ -47,26 +49,32 @@ async function run() {
         const result = await postCollection.insertOne(req.body);
         res.json(result);
       });
-      //add Comments
-      app.post("/addComments", async (req, res) => {
-        const result = await commentCollection.insertOne(req.body);
-        res.json(result);
-      });
-      app.get("/users/:email", async (req, res) => {
-        const email = req.params.email;
-        const query = { email: email };
-        const user = await usersCollection.findOne(query);
-        let isAdmin = false;
-        if (user?.role === "admin") {
-          isAdmin = true;
-        }
-        res.json({ admin: isAdmin });
-      });
 
       app.post("/users", async (req, res) => {
         const user = req.body;
         const result = await usersCollection.insertOne(user);
         console.log(result);
+        res.json(result);
+      });
+
+      //post comments
+      app.post("/addcomment", async (req, res) => {
+        const result = await commentCollection.insertOne(req.body);
+        res.json(result);
+      });
+      //Get Comments
+      app.get("/getComments", async (req, res) => {
+        const result = await commentCollection.find({}).toArray();
+        res.json(result);
+      });
+      //reply of comments
+      app.post("/addReply", async (req, res) => {
+        const result = await replyCollection.insertOne(req.body);
+        res.json(result);
+      });
+      //Get admin reply
+      app.get("/getReply", async (req, res) => {
+        const result = await replyCollection.find({}).toArray();
         res.json(result);
       });
 
