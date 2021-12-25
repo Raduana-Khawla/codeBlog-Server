@@ -17,32 +17,32 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
 });
 
-async function verifyToken(req, res, next) {
-  if (req.headers?.authorization?.startsWith("Bearer ")) {
-    const token = req.headers.authorization.split(" ")[1];
+// async function verifyToken(req, res, next) {
+//   if (req.headers?.authorization?.startsWith("Bearer ")) {
+//     const token = req.headers.authorization.split(" ")[1];
 
-    try {
-      const decodedUser = await admin.auth().verifyIdToken(token);
-      req.decodedEmail = decodedUser.email;
-    } catch {}
-  }
-  next();
-}
+//     try {
+//       const decodedUser = await admin.auth().verifyIdToken(token);
+//       req.decodedEmail = decodedUser.email;
+//     } catch {}
+//   }
+//   next();
+// }
 async function run() {
   try {
     await client.connect((err) => {
       const postCollection = client.db("codeCollection").collection("post");
       const usersCollection = client.db("codeCollection").collection("user");
-      const commentCollection = client
-        .db("codeCollection")
-        .collection("comment");
+      // const commentCollection = client
+      //   .db("codeCollection")
+      //   .collection("comment");
       const replyCollection = client.db("codeCollection").collection("reply");
 
       // get all Posts
-      app.get("/allPosts", verifyToken, async (req, res) => {
+      app.get("/allPosts", async (req, res) => {
         const result = await postCollection.find({}).toArray();
         // const data = result.filter((item) => item.status === "approve");
-        console.log("object");
+        // console.log("object");
         res.json(result);
       });
 
@@ -53,7 +53,7 @@ async function run() {
           .find({ _id: ObjectId(req.params.id) })
           .toArray();
         res.json(result[0]);
-        console.log(result);
+        // console.log(result);
       });
       //post allposts
       app.post("/addPost", async (req, res) => {
@@ -64,19 +64,19 @@ async function run() {
       app.post("/users", async (req, res) => {
         const user = req.body;
         const result = await usersCollection.insertOne(user);
-        console.log(result);
+        // console.log(result);
         res.json(result);
       });
 
       // post comments
-      app.put("/addcomment/:id", async (req, res) => {
-        const query = { _id: ObjectId(req.params.id) };
-        const options = { upsert: true };
-        const updateDoc = { $push: { comments: { message: "hi" } } };
-        const result = await movies.updateOne(query, updateDoc, options);
-        console.log("hello");
-        res.send("hello");
-      });
+      // app.put("/addcomment/:id", async (req, res) => {
+      //   const query = { _id: ObjectId(req.params.id) };
+      //   const options = { upsert: true };
+      //   const updateDoc = { $push: { comments: { message: "hi" } } };
+      //   const result = await movies.updateOne(query, updateDoc, options);
+      //   // console.log("hello");
+      //   res.send("hello");
+      // });
 
       //reply of comments
       app.post("/addReply", async (req, res) => {
