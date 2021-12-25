@@ -31,8 +31,9 @@ async function run() {
       // get all Posts
       app.get("/allPosts", async (req, res) => {
         const result = await postCollection.find({}).toArray();
-        const data = result.filter((item) => item.status === "approve");
-        res.json(data);
+        // const data = result.filter((item) => item.status === "approve");
+        console.log("object");
+        res.json(result);
       });
 
       // single Post
@@ -57,24 +58,19 @@ async function run() {
         res.json(result);
       });
 
-      //post comments
-      app.post("/addcomment", async (req, res) => {
-        const result = await commentCollection.insertOne(req.body);
-        res.json(result);
+      // post comments
+      app.put("/addcomment/:id", async (req, res) => {
+        const query = { _id: ObjectId(req.params.id) };
+        const options = { upsert: true };
+        const updateDoc = { $push: { comments: { message: "hi" } } };
+        const result = await movies.updateOne(query, updateDoc, options);
+        console.log("hello");
+        res.send("hello");
       });
-      //Get Comments
-      app.get("/getComments", async (req, res) => {
-        const result = await commentCollection.find({}).toArray();
-        res.json(result);
-      });
+
       //reply of comments
       app.post("/addReply", async (req, res) => {
         const result = await replyCollection.insertOne(req.body);
-        res.json(result);
-      });
-      //Get admin reply
-      app.get("/getReply", async (req, res) => {
-        const result = await replyCollection.find({}).toArray();
         res.json(result);
       });
 
@@ -88,6 +84,12 @@ async function run() {
           updateDoc,
           options
         );
+        res.json(result);
+      });
+      app.get("/user/:email", async (req, res) => {
+        const email = req.params.email;
+        const filter = { email };
+        const result = await usersCollection.findOne(filter);
         res.json(result);
       });
 
