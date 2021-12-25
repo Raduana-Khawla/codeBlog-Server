@@ -1,5 +1,4 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const cors = require("cors");
 require("dotenv").config();
 const MongoClient = require("mongodb").MongoClient;
@@ -18,6 +17,17 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
 });
 
+async function verifyToken(req, res, next) {
+  if (req.headers?.authorization?.startsWith("Bearer ")) {
+    const token = req.headers.authorization.split(" ")[1];
+
+    try {
+      const decodedUser = await admin.auth().verifyIdToken(token);
+      req.decodedEmail = decodedUser.email;
+    } catch {}
+  }
+  next();
+}
 async function run() {
   try {
     await client.connect((err) => {
@@ -29,7 +39,7 @@ async function run() {
       const replyCollection = client.db("codeCollection").collection("reply");
 
       // get all Posts
-      app.get("/allPosts", async (req, res) => {
+      app.get("/allPosts", verifyToken, async (req, res) => {
         const result = await postCollection.find({}).toArray();
         // const data = result.filter((item) => item.status === "approve");
         console.log("object");
