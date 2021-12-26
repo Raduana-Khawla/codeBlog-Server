@@ -1,17 +1,10 @@
 const express = require("express");
 const cors = require("cors");
-const admin = require("firebase-admin");
 require("dotenv").config();
 const MongoClient = require("mongodb").MongoClient;
 const ObjectId = require("mongodb").ObjectId;
 
 const port = process.env.PORT || 5000;
-
-const serviceAccount = require("./code-blog-firebase-adminsdk.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
 
 const app = express();
 app.use(cors());
@@ -24,17 +17,17 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
 });
 
-async function verifyToken(req, res, next) {
-  if (req.headers?.authorization?.startsWith("Bearer ")) {
-    const token = req.headers.authorization.split(" ")[1];
+// async function verifyToken(req, res, next) {
+//   if (req.headers?.authorization?.startsWith("Bearer ")) {
+//     const token = req.headers.authorization.split(" ")[1];
 
-    try {
-      const decodedUser = await admin.auth().verifyIdToken(token);
-      req.decodedEmail = decodedUser.email;
-    } catch {}
-  }
-  next();
-}
+//     try {
+//       const decodedUser = await admin.auth().verifyIdToken(token);
+//       req.decodedEmail = decodedUser.email;
+//     } catch {}
+//   }
+//   next();
+// }
 async function run() {
   try {
     await client.connect((err) => {
@@ -68,34 +61,10 @@ async function run() {
         res.json(result);
       });
 
-      app.get("/users/:email", async (req, res) => {
-        const email = req.params.email;
-        const query = { email: email };
-        const user = await usersCollection.findOne(query);
-        let isAdmin = false;
-        if (user?.role === "admin") {
-          isAdmin = true;
-        }
-        res.json({ admin: isAdmin });
-      });
-
       app.post("/users", async (req, res) => {
         const user = req.body;
         const result = await usersCollection.insertOne(user);
-        console.log(result);
-        res.json(result);
-      });
-
-      app.put("/users", async (req, res) => {
-        const user = req.body;
-        const filter = { email: user.email };
-        const options = { upsert: true };
-        const updateDoc = { $set: user };
-        const result = await usersCollection.updateOne(
-          filter,
-          updateDoc,
-          options
-        );
+        // console.log(result);
         res.json(result);
       });
 
@@ -115,7 +84,26 @@ async function run() {
         res.json(result);
       });
 
-      app.put("/users/admin", verifyToken, async (req, res) => {
+      app.put("/users", async (req, res) => {
+        const user = req.body;
+        const filter = { email: user.email };
+        const options = { upsert: true };
+        const updateDoc = { $set: user };
+        const result = await usersCollection.updateOne(
+          filter,
+          updateDoc,
+          options
+        );
+        res.json(result);
+      });
+      app.get("/user/:email", async (req, res) => {
+        const email = req.params.email;
+        const filter = { email };
+        const result = await usersCollection.findOne(filter);
+        res.json(result);
+      });
+
+      app.put("/users/admin", async (req, res) => {
         const user = req.body;
         const requester = req.decodedEmail;
         if (requester) {
