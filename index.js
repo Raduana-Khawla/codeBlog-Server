@@ -6,7 +6,6 @@ const MongoClient = require("mongodb").MongoClient;
 const ObjectId = require("mongodb").ObjectId;
 
 const port = process.env.PORT || 5000;
-
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -37,22 +36,13 @@ async function run() {
     await client.connect((err) => {
       const postCollection = client.db("codeCollection").collection("post");
       const usersCollection = client.db("codeCollection").collection("user");
-      // const commentCollection = client
-      //   .db("codeCollection")
-      //   .collection("comment");
+      const commentCollection = client
+        .db("codeCollection")
+        .collection("comment");
       const replyCollection = client.db("codeCollection").collection("reply");
 
       app.post("/jwt", verifyToken, function (req, res) {
-        // NOTE: Before you proceed with the TOKEN, verify your users' session or access.
-        const payload = {
-          sub: "123", // Unique user id string
-          name: "John Doe", // Full name of user
-
-          // Optional custom user root path
-          // 'https://claims.tiny.cloud/drive/root': '/johndoe',
-
-          exp: Math.floor(Date.now() / 1000) + 60 * 10, // 10 minutes expiration
-        };
+        console.log(req.body);
 
         try {
           const token = jwt.sign(payload, privateKey, { algorithm: "RS256" });
@@ -71,8 +61,6 @@ async function run() {
       // get all Posts
       app.get("/allPosts", async (req, res) => {
         const result = await postCollection.find({}).toArray();
-        // const data = result.filter((item) => item.status === "approve");
-        // console.log("object");
         res.json(result);
       });
 
@@ -83,7 +71,6 @@ async function run() {
           .find({ _id: ObjectId(req.params.id) })
           .toArray();
         res.json(result[0]);
-        // console.log(result);
       });
       //post allposts
       app.post("/addPost", async (req, res) => {
@@ -91,26 +78,48 @@ async function run() {
         res.json(result);
       });
 
-      app.post("/users", async (req, res) => {
-        const user = req.body;
-        const result = await usersCollection.insertOne(user);
-        // console.log(result);
+      //post allposts
+      app.post("/addcomment", async (req, res) => {
+        const result = await commentCollection.insertOne(req.body);
         res.json(result);
       });
 
-      // post comments
-      // app.put("/addcomment/:id", async (req, res) => {
-      //   const query = { _id: ObjectId(req.params.id) };
-      //   const options = { upsert: true };
-      //   const updateDoc = { $push: { comments: { message: "hi" } } };
-      //   const result = await movies.updateOne(query, updateDoc, options);
-      //   // console.log("hello");
-      //   res.send("hello");
+      // app.get("/comments", (req, res) => {
+      //   console.log(req.commentID);
+      //   commentCollection
+      //     .find({ commentID: req.query.commentID })
+      //     .toArray((err, documents) => {
+      //       res.send(documents);
+      //     });
       // });
+      app.get("/comments/:id", async (req, res) => {
+        console.log(req.params.id);
+        const result = await commentCollection
+          .find({ _id: ObjectId(req.params.id) })
+          .toArray();
+        res.json(result[0]);
+      });
 
       //reply of comments
       app.post("/addReply", async (req, res) => {
         const result = await replyCollection.insertOne(req.body);
+        res.json(result);
+      });
+      app.get("/users/:email", async (req, res) => {
+        const email = req.params.email;
+        const query = { email: email };
+        const user = await usersCollection.findOne(query);
+        let isAdmin = false;
+        if (user?.role === "admin") {
+          isAdmin = true;
+        }
+        res.json({ admin: isAdmin });
+      });
+
+      app.post("/users", async (req, res) => {
+        const user = req.body;
+        const result = await usersCollection.insertOne(user);
+        console.log(result);
         res.json(result);
       });
 
@@ -126,14 +135,8 @@ async function run() {
         );
         res.json(result);
       });
-      app.get("/user/:email", async (req, res) => {
-        const email = req.params.email;
-        const filter = { email };
-        const result = await usersCollection.findOne(filter);
-        res.json(result);
-      });
 
-      app.put("/users/admin", async (req, res) => {
+      app.put("/users/admin", verifyToken, async (req, res) => {
         const user = req.body;
         const requester = req.decodedEmail;
         if (requester) {
@@ -157,12 +160,10 @@ async function run() {
         const result = await postCollection.deleteOne({
           _id: ObjectId(req.params.id),
         });
-        // console.log(result);
         res.json(result);
       });
       /// all order
       app.get("/allOrders", async (req, res) => {
-        // console.log("hello");
         const result = await postCollection.find({}).toArray();
         res.json(result);
       });
