@@ -84,27 +84,16 @@ async function run() {
         res.json(result);
       });
 
-      // app.get("/comments", (req, res) => {
-      //   console.log(req.commentID);
-      //   commentCollection
-      //     .find({ commentID: req.query.commentID })
-      //     .toArray((err, documents) => {
-      //       res.send(documents);
-      //     });
-      // });
-      app.get("/comments/:id", async (req, res) => {
-        console.log(req.params.id);
-        const result = await commentCollection
-          .find({ _id: ObjectId(req.params.id) })
-          .toArray();
-        res.json(result[0]);
+      app.get("/comments", async (req, res) => {
+        const result = await commentCollection.find({}).toArray();
+        res.send(result);
       });
 
-      //reply of comments
-      app.post("/addReply", async (req, res) => {
-        const result = await replyCollection.insertOne(req.body);
-        res.json(result);
-      });
+      // //reply of comments
+      // app.post("/addReply", async (req, res) => {
+      //   const result = await replyCollection.insertOne(req.body);
+      //   res.json(result);
+      // });
       app.get("/users/:email", async (req, res) => {
         const email = req.params.email;
         const query = { email: email };
