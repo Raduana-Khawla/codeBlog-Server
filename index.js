@@ -1,14 +1,15 @@
 const express = require("express");
+const app = express();
 const cors = require("cors");
-const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const MongoClient = require("mongodb").MongoClient;
 const ObjectId = require("mongodb").ObjectId;
+const fileUpload = require("express-fileupload");
 
 const port = process.env.PORT || 5000;
-const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(fileUpload());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wjlgu.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 
@@ -39,6 +40,7 @@ async function run() {
       const commentCollection = client
         .db("codeCollection")
         .collection("comment");
+      const imageCollection = client.db("codeCollection").collection("image");
 
       // get all Posts
       app.get("/allPosts", async (req, res) => {
@@ -69,6 +71,23 @@ async function run() {
       app.get("/comments", async (req, res) => {
         const result = await commentCollection.find({}).toArray();
         res.send(result);
+      });
+      app.get("/image", async (req, res) => {
+        const cursor = imageCollection.find({});
+        const result = await cursor.toArray();
+        res.json(result);
+      });
+
+      app.post("/image", async (req, res) => {
+        const pic = req.files.image;
+        const picData = pic.data;
+        const encodedPic = picData.toString("base64");
+        const imageBuffer = Buffer.from(encodedPic, "base64");
+        const imageStore = {
+          image: imageBuffer,
+        };
+        const result = await imageCollection.insertOne(imageStore);
+        res.json(result);
       });
 
       app.get("/users/:email", async (req, res) => {
