@@ -40,7 +40,7 @@ async function run() {
       const commentCollection = client
         .db("codeCollection")
         .collection("comment");
-      const imageCollection = client.db("codeCollection").collection("image");
+      const imageCollection = client.db("codeCollection").collection("images");
 
       // get all Posts
       app.get("/allPosts", async (req, res) => {
@@ -72,13 +72,13 @@ async function run() {
         const result = await commentCollection.find({}).toArray();
         res.send(result);
       });
-      app.get("/image", async (req, res) => {
+      app.get("/images", async (req, res) => {
         const cursor = imageCollection.find({});
         const result = await cursor.toArray();
         res.json(result);
       });
 
-      app.post("/image", async (req, res) => {
+      app.post("/images", async (req, res) => {
         console.log(req.files);
         const pic = req.files.image;
         const picData = pic.data;
@@ -86,6 +86,7 @@ async function run() {
         const imageBuffer = Buffer.from(encodedPic, "base64");
         const imageStore = {
           image: imageBuffer,
+          postId: req.body.postId,
         };
         const result = await imageCollection.insertOne(imageStore);
         res.json(result);
