@@ -79,6 +79,7 @@ async function run() {
       });
 
       app.post("/image", async (req, res) => {
+        console.log(req.files);
         const pic = req.files.image;
         const picData = pic.data;
         const encodedPic = picData.toString("base64");
@@ -88,8 +89,24 @@ async function run() {
         };
         const result = await imageCollection.insertOne(imageStore);
         res.json(result);
+        console.log(req.body);
       });
 
+      app.get("/users", async (req, res) => {
+        const cursor = usersCollection.find({});
+        const user = await cursor.toArray();
+        res.send(user);
+      });
+
+      //get user by email
+      app.get("/users", async (req, res) => {
+        const email = req.query.email;
+        const query = { email: email };
+        console.log(query);
+        const cursor = usersCollection.find(query);
+        const users = await cursor.toArray();
+        res.send(users);
+      });
       app.get("/users/:email", async (req, res) => {
         const email = req.params.email;
         const query = { email: email };
@@ -101,16 +118,15 @@ async function run() {
         res.json({ admin: isAdmin });
       });
 
-      app.post("/users", async (req, res) => {
+      app.post("/users", verifyToken, async (req, res) => {
         const user = req.body;
         const result = await usersCollection.insertOne(user);
         console.log(result);
         res.json(result);
       });
 
-      app.put("/users", async (req, res) => {
+      app.put("/users", verifyToken, async (req, res) => {
         const user = req.body;
-        console.log("put", user);
         const filter = { email: user.email };
         const options = { upsert: true };
         const updateDoc = { $set: user };
