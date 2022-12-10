@@ -1,13 +1,15 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
+app.use(cors());
+
 require("dotenv").config();
 const MongoClient = require("mongodb").MongoClient;
 const ObjectId = require("mongodb").ObjectId;
 const fileUpload = require("express-fileupload");
 
 const port = process.env.PORT || 5000;
-app.use(cors());
+
 app.use(express.json());
 app.use(fileUpload());
 
@@ -41,7 +43,6 @@ async function run() {
         .db("codeCollection")
         .collection("comment");
       const imageCollection = client.db("codeCollection").collection("images");
-
       // get all Posts
       app.get("/allPosts", async (req, res) => {
         const result = await postCollection.find({}).toArray();
